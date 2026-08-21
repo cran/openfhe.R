@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Balasubramanian Narasimhan" />
+
+<meta name="date" content="2026-08-19" />
+
+<title>CKKS Bootstrapping: Refreshing Deep Circuits</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">CKKS Bootstrapping: Refreshing Deep
+Circuits</h1>
+<h4 class="author">Balasubramanian Narasimhan</h4>
+<h4 class="date">2026-08-19</h4>
+
+
+
+<p>CKKS has a budget. Every multiplication consumes a level in the
+ciphertext’s modulus chain, and when the chain is exhausted the
+ciphertext stops being decryptable. For a linear sequence of
+multiplications the budget is exactly the multiplicative depth you
+configured at context construction; once it’s spent, you either finish
+the computation or you find a way to refresh the ciphertext.</p>
+<p><strong>Bootstrapping is the refresh operation.</strong> It produces
+a new ciphertext that encrypts the same plaintext but at a fresh modulus
+level. From the outside it’s an identity function; internally it runs a
+small circuit of its own (typically consuming 10–15 levels) that leaves
+the ciphertext at a higher level than it started.</p>
+<p>OpenFHE exposes three flavors of bootstrap. This vignette walks all
+three, with runnable examples, and maps each to the R interface that
+<code>openfhe.R</code> ships:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Non-interactive bootstrap</strong> — the classical form. The
+server holds bootstrap keys and can refresh any ciphertext on its
+own.</li>
+<li><strong>Iterative non-interactive bootstrap</strong> — the same
+thing in a loop, for circuits deep enough that one refresh isn’t
+enough.</li>
+<li><strong>Interactive multi-party bootstrap</strong> — the 9117
+addition. Each party contributes to the refresh, no single party holds
+enough key material to bootstrap alone. This is the variant that
+composes with the threshold-FHE workflow the cox-threshold and
+cvxr-consensus-admm vignettes build on.</li>
+</ol>
+<p>Key point: <strong>the bootstrap is invisible to the R user’s
+statistical code.</strong> You still call the same
+<code>eval_mult</code> / <code>eval_add</code> / <code>decrypt</code>
+functions; the bootstrap adds one call and the R script reads through as
+if nothing happened.</p>
+<div id="the-depth-budget-problem" class="section level2">
+<h2>The depth budget problem</h2>
+<p>To see why bootstrapping matters, start with a depth-limited context
+and run out of budget.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(openfhe.R)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>cc_shallow <span class="ot">&lt;-</span> <span class="fu">fhe_context</span>(<span class="st">&quot;CKKS&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">multiplicative_depth =</span> <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">scaling_mod_size     =</span> <span class="dv">50</span><span class="dt">L</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">batch_size           =</span> <span class="dv">8</span><span class="dt">L</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>kp_shallow <span class="ot">&lt;-</span> <span class="fu">key_gen</span>(cc_shallow, <span class="at">eval_mult =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>pt <span class="ot">&lt;-</span> <span class="fu">make_ckks_packed_plaintext</span>(cc_shallow, x)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>ct <span class="ot">&lt;-</span> <span class="fu">encrypt</span>(kp_shallow<span class="sc">@</span>public, pt, <span class="at">cc =</span> cc_shallow)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a></span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="do">## Three multiplications in sequence — right at the depth</span></span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="do">## budget. This succeeds.</span></span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a>ct_a <span class="ot">&lt;-</span> ct <span class="sc">*</span> ct           <span class="co"># level 1</span></span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a>ct_b <span class="ot">&lt;-</span> ct_a <span class="sc">*</span> ct         <span class="co"># level 2</span></span>
+<span id="cb1-18"><a href="#cb1-18" tabindex="-1"></a>ct_c <span class="ot">&lt;-</span> ct_b <span class="sc">*</span> ct         <span class="co"># level 3</span></span>
+<span id="cb1-19"><a href="#cb1-19" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">decrypt</span>(ct_c, kp_shallow<span class="sc">@</span>secret, <span class="at">cc =</span> cc_shallow)</span>
+<span id="cb1-20"><a href="#cb1-20" tabindex="-1"></a><span class="fu">set_length</span>(res, <span class="dv">8</span><span class="dt">L</span>)</span>
+<span id="cb1-21"><a href="#cb1-21" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">get_real_packed_value</span>(res)[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>], <span class="dv">5</span>)</span>
+<span id="cb1-22"><a href="#cb1-22" tabindex="-1"></a><span class="co">#&gt; [1] 0.0625 0.0625 0.0625</span></span>
+<span id="cb1-23"><a href="#cb1-23" tabindex="-1"></a><span class="do">## ~ c(0.5^4, 0.5^4, 0.5^4) = c(0.0625, 0.0625, 0.0625)</span></span></code></pre></div>
+<p>One more multiplication on <code>ct_c</code> would fail: the modulus
+chain is empty and the next multiply has nothing to rescale into. That’s
+the depth wall. The rest of the vignette shows how to climb past it.</p>
+</div>
+<div id="non-interactive-bootstrap" class="section level2">
+<h2>Non-interactive bootstrap</h2>
+<p>The classical CKKS bootstrap is a server-side operation. The server
+holds a set of <em>bootstrap keys</em> (generated from the secret key at
+setup time) and can call <code>eval_bootstrap</code> on any ciphertext
+to refresh it. No client interaction needed once the keys are in
+place.</p>
+<div id="setup" class="section level3">
+<h3>Setup</h3>
+<p>Bootstrap has significant level overhead — the bootstrap circuit
+itself consumes modulus-chain levels, so the context’s
+<code>multiplicative_depth</code> must be at least the bootstrap budget
+plus whatever user compute the refreshed ciphertext needs to
+support.</p>
+<p><code>get_bootstrap_depth()</code> computes the per-bootstrap level
+cost from the <code>level_budget</code> and the secret-key
+distribution.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="do">## Choose the bootstrap level budget. The two integers are</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="do">## the encoding and decoding budgets; (3, 3) is a reasonable</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="do">## middle ground. Larger values give faster bootstrap at the</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="do">## cost of deeper required chain.</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>level_budget   <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">3</span><span class="dt">L</span>, <span class="dv">3</span><span class="dt">L</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>secret_key_dist <span class="ot">&lt;-</span> SecretKeyDist<span class="sc">$</span>UNIFORM_TERNARY</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>boot_depth <span class="ot">&lt;-</span> <span class="fu">get_bootstrap_depth</span>(level_budget, secret_key_dist)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>boot_depth</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; [1] 20</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="do">## User compute budget after a single bootstrap — how many</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="do">## multiplications we want to do between refreshes.</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>user_depth <span class="ot">&lt;-</span> <span class="dv">2</span><span class="dt">L</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>total_depth <span class="ot">&lt;-</span> boot_depth <span class="sc">+</span> user_depth</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>total_depth</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; [1] 22</span></span></code></pre></div>
+<p>With the budget computed, build a CKKS context that has enough depth
+to cover both the bootstrap circuit and the post-bootstrap user
+compute.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>cc <span class="ot">&lt;-</span> <span class="fu">fhe_context</span>(<span class="st">&quot;CKKS&quot;</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">multiplicative_depth =</span> total_depth,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">scaling_mod_size     =</span> <span class="dv">59</span><span class="dt">L</span>,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">first_mod_size       =</span> <span class="dv">60</span><span class="dt">L</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">ring_dim             =</span> <span class="dv">4096</span><span class="dt">L</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">security_level       =</span> SecurityLevel<span class="sc">$</span>HEStd_NotSet,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">scaling_technique    =</span> ScalingTechnique<span class="sc">$</span>FLEXIBLEAUTO,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">features             =</span> <span class="fu">c</span>(Feature<span class="sc">$</span>ADVANCEDSHE, Feature<span class="sc">$</span>FHE)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>)</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>kp <span class="ot">&lt;-</span> <span class="fu">key_gen</span>(cc, <span class="at">eval_mult =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><code>Feature$FHE</code> is the feature flag that turns on the
+bootstrap; <code>Feature$ADVANCEDSHE</code> is required alongside it
+because the Chebyshev approximations used inside the bootstrap circuit
+live in that feature.</p>
+</div>
+<div id="bootstrap-key-generation" class="section level3">
+<h3>Bootstrap key generation</h3>
+<p>Once the context exists, generate the bootstrap keys (rotation keys
+that the bootstrap circuit uses internally) and pre-compute the encoding
+/ decoding plaintexts.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="do">## ring_dim / 2 is the number of CKKS slots. Query it off</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="do">## the context rather than hard-coding.</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>ring_dim  <span class="ot">&lt;-</span> <span class="fu">ring_dimension</span>(cc)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>num_slots <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(ring_dim <span class="sc">/</span> <span class="dv">2</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="fu">eval_bootstrap_setup</span>(cc, <span class="at">level_budget =</span> level_budget)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="fu">eval_bootstrap_key_gen</span>(cc, kp<span class="sc">@</span>secret, num_slots)</span></code></pre></div>
+<p>The setup call accepts the optional <code>bt_slots_encoding</code>
+argument for a small efficiency improvement in specific slot
+configurations — it defaults to <code>FALSE</code> matching the upstream
+default.</p>
+</div>
+<div id="run-a-refresh" class="section level3">
+<h3>Run a refresh</h3>
+<p>Encrypt a small vector, burn through most of the user compute budget,
+then bootstrap and verify the refreshed ciphertext still decrypts to the
+expected plaintext.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1.0</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>pt_y <span class="ot">&lt;-</span> <span class="fu">make_ckks_packed_plaintext</span>(cc, y)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>ct_y <span class="ot">&lt;-</span> <span class="fu">encrypt</span>(kp<span class="sc">@</span>public, pt_y, <span class="at">cc =</span> cc)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="do">## Burn a couple of levels to simulate &quot;the user circuit has</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="do">## run and now we need to refresh&quot;.</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>ct_y <span class="ot">&lt;-</span> ct_y <span class="sc">*</span> ct_y     <span class="co"># y^2</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="do">## At this point ct_y sits at a lower level than it started.</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="do">## One bootstrap call refreshes the ciphertext. Default</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="do">## num_iterations = 1L is the standard case.</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>ct_refreshed <span class="ot">&lt;-</span> <span class="fu">eval_bootstrap</span>(ct_y)</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="do">## Decrypt the refreshed ciphertext and confirm it holds</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="do">## the same value as y^2 did.</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>res_refresh <span class="ot">&lt;-</span> <span class="fu">decrypt</span>(ct_refreshed, kp<span class="sc">@</span>secret, <span class="at">cc =</span> cc)</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="fu">set_length</span>(res_refresh, <span class="dv">4</span><span class="dt">L</span>)</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">get_real_packed_value</span>(res_refresh)[<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>], <span class="dv">4</span>)</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; [1] 0.0625 0.2500 0.5625 1.0000</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="do">## ~ c(0.0625, 0.25, 0.5625, 1.0) = y^2</span></span></code></pre></div>
+<p>Post-refresh, the ciphertext has enough headroom to continue
+computing — <code>ct_refreshed * ct</code> works where a second
+<code>ct_y * ct_y</code> on the pre-bootstrap form would have been
+exhausted.</p>
+</div>
+</div>
+<div id="iterative-bootstrap" class="section level2">
+<h2>Iterative bootstrap</h2>
+<p>For circuits deep enough that one refresh isn’t enough,
+<code>eval_bootstrap()</code> accepts a <code>num_iterations</code>
+argument that runs multiple refreshes in sequence with increasing
+precision. This is the iterative form — a quality/performance trade-off
+that lets the caller spend more cycles for tighter noise bounds.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">## Same cc, same keys — just more iterations per call.</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>ct_refreshed_2 <span class="ot">&lt;-</span> <span class="fu">eval_bootstrap</span>(ct_y, <span class="at">num_iterations =</span> <span class="dv">2</span><span class="dt">L</span>)</span></code></pre></div>
+<p>The cost scales roughly linearly in <code>num_iterations</code>; two
+iterations is the typical value when a single refresh’s precision drop
+is the dominant source of error in a long user circuit. Three or more
+iterations have diminishing returns and are rarely needed.</p>
+<p>The iterative form is hidden inside the same
+<code>eval_bootstrap()</code> entry point — there is no separate
+<code>eval_iterative_bootstrap()</code> generic. The
+<code>num_iterations</code> argument is optional and defaults to
+<code>1L</code>, so existing code that calls
+<code>eval_bootstrap(ct)</code> gets the classical non- iterative form
+unchanged.</p>
+</div>
+<div id="interactive-multi-party-bootstrap" class="section level2">
+<h2>Interactive multi-party bootstrap</h2>
+<p>The non-interactive forms require a party that holds the bootstrap
+keys — and the bootstrap keys are generated from the secret key, so
+whoever holds them effectively holds the decryption capability. In a
+threshold-FHE setting where no single party is supposed to decrypt on
+their own, the classical bootstrap isn’t viable: granting any party the
+bootstrap keys would break the threshold security model.</p>
+<p>The <strong>interactive multi-party bootstrap</strong>
+(<code>IntMPBoot*</code> family) solves this. The refresh operation
+itself becomes a distributed protocol: each party contributes a share,
+the shares are aggregated into a single “shares pair”, and a final
+re-encryption step produces a refreshed ciphertext at a fresh modulus
+level without any party ever holding enough key material to decrypt
+alone.</p>
+<p>This is the bootstrap variant that composes with the threshold-FHE
+flow used in the <code>cox-threshold</code> and
+<code>cvxr-consensus-admm</code> vignettes.</p>
+<div id="setup-1" class="section level3">
+<h3>Setup</h3>
+<p>Build a CKKS context with <code>Feature$MULTIPARTY</code> alongside
+the <code>FHE</code> + <code>ADVANCEDSHE</code> features, then generate
+the lead party’s key material and daisy-chain a second party off it.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>cc_mp <span class="ot">&lt;-</span> <span class="fu">fhe_context</span>(<span class="st">&quot;CKKS&quot;</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">multiplicative_depth =</span> <span class="dv">6</span><span class="dt">L</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">scaling_mod_size     =</span> <span class="dv">50</span><span class="dt">L</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">first_mod_size       =</span> <span class="dv">60</span><span class="dt">L</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">ring_dim             =</span> <span class="dv">4096</span><span class="dt">L</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">security_level       =</span> SecurityLevel<span class="sc">$</span>HEStd_NotSet,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">batch_size           =</span> <span class="dv">8</span><span class="dt">L</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">features             =</span> <span class="fu">c</span>(Feature<span class="sc">$</span>ADVANCEDSHE, Feature<span class="sc">$</span>FHE,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>                           Feature<span class="sc">$</span>MULTIPARTY)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>kp1 <span class="ot">&lt;-</span> <span class="fu">key_gen</span>(cc_mp, <span class="at">eval_mult =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>kp2 <span class="ot">&lt;-</span> <span class="fu">multiparty_key_gen</span>(cc_mp, kp1<span class="sc">@</span>public)</span></code></pre></div>
+</div>
+<div id="refresh-a-ciphertext-through-the-multi-party-protocol" class="section level3">
+<h3>Refresh a ciphertext through the multi-party protocol</h3>
+<p>Encrypt a plaintext under party 2’s public key (the daisy-chained
+“joint” public key in the two-party threshold protocol), adjust the
+scale via <code>int_mp_boot_adjust_scale()</code>, generate a common
+random element that all parties will use in their partial decryptions,
+and then run each party’s partial decryption.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span>, <span class="fl">0.4</span>, <span class="fl">0.5</span>, <span class="fl">0.6</span>, <span class="fl">0.7</span>, <span class="fl">0.8</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>pt_z <span class="ot">&lt;-</span> <span class="fu">make_ckks_packed_plaintext</span>(cc_mp, z)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>ct_z <span class="ot">&lt;-</span> <span class="fu">encrypt</span>(kp2<span class="sc">@</span>public, pt_z, <span class="at">cc =</span> cc_mp)</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="do">## Step 1: scale adjustment. Prepares the ciphertext for</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="do">## the interactive refresh protocol.</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>ct_z_adjusted <span class="ot">&lt;-</span> <span class="fu">int_mp_boot_adjust_scale</span>(ct_z)</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="do">## Step 2: generate the common random element. Can be</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="do">## derived from either the lead party&#39;s public key or from</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="do">## a reference ciphertext — the two overloads produce</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="do">## equivalent output.</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">int_mp_boot_random_element_gen</span>(cc_mp, kp1<span class="sc">@</span>public)</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="do">## Step 3: each party computes their masked-decryption</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="do">## shares pair. Each party&#39;s output is a list of two</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="do">## Ciphertexts.</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a>shares1 <span class="ot">&lt;-</span> <span class="fu">int_mp_boot_decrypt</span>(kp1<span class="sc">@</span>secret, ct_z_adjusted, a)</span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a>shares2 <span class="ot">&lt;-</span> <span class="fu">int_mp_boot_decrypt</span>(kp2<span class="sc">@</span>secret, ct_z_adjusted, a)</span></code></pre></div>
+</div>
+<div id="aggregate-and-finalize" class="section level3">
+<h3>Aggregate and finalize</h3>
+<p>The shares pairs are aggregated into a single shares pair via
+<code>int_mp_boot_add()</code> (parallel to how
+<code>multiparty_decrypt_fusion()</code> aggregates lead + main partials
+in the ordinary threshold decrypt). The aggregated shares pair, the
+common random element, and the original ciphertext all go into
+<code>int_mp_boot_encrypt()</code> — the final step that produces the
+refreshed ciphertext at a fresh modulus level.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="do">## Aggregate both parties&#39; shares pairs.</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>aggregated <span class="ot">&lt;-</span> <span class="fu">int_mp_boot_add</span>(cc_mp, <span class="fu">list</span>(shares1, shares2))</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="do">## Final re-encryption step.</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>ct_refreshed_mp <span class="ot">&lt;-</span> <span class="fu">int_mp_boot_encrypt</span>(kp1<span class="sc">@</span>public, aggregated,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>                                       a, ct_z_adjusted)</span></code></pre></div>
+<p>The refreshed ciphertext composes with subsequent computation exactly
+like the output of the non-interactive bootstrap would — the bootstrap
+is still invisible to the user circuit layer, only the key-management
+and setup details change.</p>
+</div>
+</div>
+<div id="comparison" class="section level2">
+<h2>Comparison</h2>
+<p>The three variants have different properties. This table summarizes
+when to reach for each.</p>
+<table>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variant</th>
+<th>Feature flags</th>
+<th>Who holds bootstrap capability</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Non-interactive</td>
+<td><code>ADVANCEDSHE</code>, <code>FHE</code></td>
+<td>Single server</td>
+<td>Standard single-party CKKS with deep circuits</td>
+</tr>
+<tr class="even">
+<td>Iterative</td>
+<td><code>ADVANCEDSHE</code>, <code>FHE</code></td>
+<td>Single server</td>
+<td>Same as above, when one refresh’s precision isn’t enough</td>
+</tr>
+<tr class="odd">
+<td>Interactive multi-party</td>
+<td><code>ADVANCEDSHE</code>, <code>FHE</code>,
+<code>MULTIPARTY</code></td>
+<td>Distributed across parties</td>
+<td>Threshold FHE where no single party can decrypt</td>
+</tr>
+</tbody>
+</table>
+<p>For the audience that this package primarily serves —
+precision-critical distributed statistics with a threshold-FHE backbone
+— <strong>the interactive multi-party form is the right default</strong>
+whenever a circuit needs more depth than the initial context budget
+provides. The non-interactive form is simpler but requires giving
+someone the bootstrap keys, which is exactly what the threshold flow is
+trying to avoid. The iterative form is an efficiency knob on the
+non-interactive path and is only relevant when the classical
+single-server bootstrap is already viable.</p>
+</div>
+<div id="further-reading" class="section level2">
+<h2>Further reading</h2>
+<p>Besides the package help, see:</p>
+<ul>
+<li><a href="https://openfhe-development.readthedocs.io/">OpenFHE
+docs</a></li>
+<li>Vignettes in the companion <a href="https://cran.r-project.org/package=homomorpheR">homomorpheR</a>
+package (version &gt;= 1.0).</li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

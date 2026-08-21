@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Balasubramanian Narasimhan" />
+
+<meta name="date" content="2026-08-19" />
+
+<title>Introduction to openfhe.R: Fully Homomorphic Encryption in R</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to openfhe.R: Fully
+Homomorphic Encryption in R</h1>
+<h4 class="author">Balasubramanian Narasimhan</h4>
+<h4 class="date">2026-08-19</h4>
+
+
+
+<p>A statistician fitting a Cox model on hospital records, or a data
+scientist pooling case counts across institutions, often hits the same
+wall: the data cannot leave the institution that collected it. Privacy
+regulations, consent agreements, and plain institutional caution all
+conspire to keep the rows where they are. The usual workaround — summary
+statistics shipped between sites — works for some questions and falls
+short for others, especially anything that needs a joint likelihood, an
+iterative optimizer, or a model owner who is not allowed to see the raw
+features.</p>
+<p>Fully Homomorphic Encryption (FHE) gives us another option. A data
+holder encrypts the data once, ships the encrypted copy to whoever is
+doing the computation, and that party can add, multiply, and otherwise
+manipulate the encrypted values without ever seeing the underlying
+numbers. Only the key holder can decrypt the final answer. The
+<code>openfhe.R</code> package wraps the <a href="https://github.com/openfheorg/openfhe-development">OpenFHE</a> C++
+library so that R users can do this from the same environment they
+already use for analysis.</p>
+<div id="a-few-terms-from-the-cryptography-side" class="section level2">
+<h2>A few terms from the cryptography side</h2>
+<p>The package’s function names mirror the underlying C++ API, which
+means a handful of crypto-world words show up in arguments and return
+values. None of them require a cryptography background to use; this is
+the dictionary you need to read the rest of this vignette.</p>
+<ul>
+<li><strong>Plaintext.</strong> The <em>encoded</em> form of the numeric
+input — not raw R values but a packed object the encryption step knows
+how to read. You build one from a numeric vector with
+<code>make_packed_plaintext()</code> (for the integer schemes) or
+<code>make_ckks_packed_plaintext()</code> (for real-valued data). Think
+of it as the moral equivalent of <code>as.numeric()</code> for the
+encryption pipeline.</li>
+<li><strong>Ciphertext.</strong> What you get after encrypting a
+plaintext. All the encrypted-arithmetic functions operate on ciphertexts
+and return ciphertexts; the only way back to numbers is
+<code>decrypt()</code> plus an unpacker like
+<code>get_packed_value()</code> or
+<code>get_real_packed_value()</code>.</li>
+<li><strong>CryptoContext.</strong> A parameter bundle returned by
+<code>fhe_context()</code>. It pins down the scheme, the precision
+budget, and the layout of the slots. Almost every other call takes a
+context as the <code>cc =</code> argument.</li>
+<li><strong>Public and secret key.</strong> Standard public-key roles.
+<code>key_gen()</code> returns a <code>KeyPair</code> with
+<code>@public</code> and <code>@secret</code> slots. Encryption uses the
+public key, decryption uses the secret key.</li>
+<li><strong>Evaluation keys.</strong> Auxiliary keys that
+<em>authorize</em> specific encrypted-side operations — multiplication
+of two ciphertexts, summation across slots, rotation. They are generated
+alongside the secret key when you ask for them
+(<code>eval_mult = TRUE</code> to <code>key_gen()</code>, for example)
+and travel with the public key when you ship encrypted data.</li>
+<li><strong>Slots.</strong> Internally an encrypted vector has many more
+positions than the data you put in — typically thousands. You use the
+first few and call <code>set_length()</code> on the decrypted result to
+trim back.</li>
+</ul>
+<p>That is the whole vocabulary and the rest of this vignette describes
+the package facilities using only those terms.</p>
+</div>
+<div id="five-short-demonstrations" class="section level2">
+<h2>Five Short Demonstrations</h2>
+<p>The rest of this introduction walks five short demonstrations, in the
+order most R users will meet them:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Encrypted integer arithmetic.</strong> The simplest case —
+adding and multiplying integer vectors that the computing party never
+sees. Useful for counts, ranks, and exact tallies.</li>
+<li><strong>Encrypted real arithmetic.</strong> Most statistical work
+lives here: regression coefficients, likelihoods, gradients, sample
+variances. The CKKS scheme handles real numbers with controlled
+approximation error.</li>
+<li><strong>Boolean operations on encrypted bits.</strong> When the
+computation needs comparisons, branching, or per-bit logic, a different
+scheme (BinFHE) takes over.</li>
+<li><strong>Serialization.</strong> Distributed protocols need to send
+encrypted values and keys across processes or across the network. Every
+object in <code>openfhe.R</code> can be written to a file and read
+back.</li>
+<li><strong>Threshold (multi-party) decryption.</strong> No single party
+needs to hold the full secret key. Two or more parties can each hold a
+share and jointly decrypt the result — the foundation for federated
+computation across institutions.</li>
+</ol>
+<p>Each step builds on the previous one. By the end you will have seen
+the full set of building blocks that the rest of the package’s vignettes
+— and the companion <code>homomorpheR</code> application package
+(version &gt;= 1.0) — assemble into worked examples.</p>
+</div>
+<div id="encrypted-integer-arithmetic" class="section level2">
+<h2>Encrypted integer arithmetic</h2>
+<p>The BFV scheme handles exact integer arithmetic modulo a plaintext
+modulus. There is no rounding error: an addition of two encrypted
+vectors decrypts to exactly the same vector the cleartext addition would
+have produced.</p>
+<p>A <code>CryptoContext</code> holds the scheme parameters; from it we
+generate a public/secret key pair (and the evaluation keys that
+authorize multiplication of encrypted values).</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(openfhe.R)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>cc <span class="ot">&lt;-</span> <span class="fu">fhe_context</span>(<span class="st">&quot;BFV&quot;</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">plaintext_modulus    =</span> <span class="dv">65537</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">multiplicative_depth =</span> <span class="dv">2</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>keys <span class="ot">&lt;-</span> <span class="fu">key_gen</span>(cc, <span class="at">eval_mult =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p>With keys in hand, encrypt two integer vectors. In
+<code>openfhe.R</code>, encryption takes a <em>plaintext</em> object — a
+packed, scheme-aware representation of the input — rather than a raw R
+vector, so the workflow is “pack, then encrypt”.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">6</span>, <span class="dv">7</span>, <span class="dv">8</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>, <span class="dv">40</span>, <span class="dv">50</span>, <span class="dv">60</span>, <span class="dv">70</span>, <span class="dv">80</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>ct_x <span class="ot">&lt;-</span> <span class="fu">encrypt</span>(keys<span class="sc">@</span>public, <span class="fu">make_packed_plaintext</span>(cc, x), <span class="at">cc =</span> cc)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>ct_y <span class="ot">&lt;-</span> <span class="fu">encrypt</span>(keys<span class="sc">@</span>public, <span class="fu">make_packed_plaintext</span>(cc, y), <span class="at">cc =</span> cc)</span></code></pre></div>
+<p><code>ct_x</code> and <code>ct_y</code> are the encrypted versions of
+<code>x</code> and <code>y</code>. A computing party with no access to
+<code>keys@secret</code> can still add and multiply them.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>ct_sum  <span class="ot">&lt;-</span> ct_x <span class="sc">+</span> ct_y</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>ct_prod <span class="ot">&lt;-</span> ct_x <span class="sc">*</span> ct_y</span></code></pre></div>
+<p>Decryption requires the secret key. The <code>set_length()</code>
+call trims the result to the original input length, since the underlying
+packed representation has many more slots than we used.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>result_sum  <span class="ot">&lt;-</span> <span class="fu">decrypt</span>(ct_sum,  keys<span class="sc">@</span>secret, <span class="at">cc =</span> cc)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>result_prod <span class="ot">&lt;-</span> <span class="fu">decrypt</span>(ct_prod, keys<span class="sc">@</span>secret, <span class="at">cc =</span> cc)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">set_length</span>(result_sum,  <span class="dv">8</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="fu">set_length</span>(result_prod, <span class="dv">8</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>sum_vec  <span class="ot">&lt;-</span> <span class="fu">get_packed_value</span>(result_sum)</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>prod_vec <span class="ot">&lt;-</span> <span class="fu">get_packed_value</span>(result_prod)</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>sum_vec</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; [1] 11 22 33 44 55 66 77 88</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>prod_vec</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; [1]  10  40  90 160 250 360 490 640</span></span></code></pre></div>
+<p>The decrypted sum is exactly <code>x + y</code> and the decrypted
+product is exactly <code>x * y</code> — element by element, no
+approximation. The first entries are 11 and 10, matching
+<code>1 + 10</code> and <code>1 * 10</code>. BFV is the right tool
+whenever the analytic quantity is an integer count, an exact aggregate,
+or anything that should be reproduced bit-for-bit.</p>
+</div>
+<div id="encrypted-real-arithmetic" class="section level2">
+<h2>Encrypted real arithmetic</h2>
+<p>Most statistical work involves real numbers. The CKKS scheme encrypts
+vectors of doubles and supports addition, multiplication, and scalar
+operations with bounded approximation error. The error is controlled by
+a <code>scaling_mod_size</code> parameter at context construction; for
+the values below it sits well under one part in a million.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>cc <span class="ot">&lt;-</span> <span class="fu">fhe_context</span>(<span class="st">&quot;CKKS&quot;</span>,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">multiplicative_depth =</span> <span class="dv">1</span>,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">scaling_mod_size     =</span> <span class="dv">50</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">batch_size           =</span> <span class="dv">8</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>)</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>keys <span class="ot">&lt;-</span> <span class="fu">key_gen</span>(cc, <span class="at">eval_mult =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p>Encrypt a real-valued vector and run a few operations on it.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>x  <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>, <span class="fl">1.0</span>, <span class="fl">2.0</span>, <span class="fl">3.0</span>, <span class="fl">4.0</span>, <span class="fl">5.0</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>ct <span class="ot">&lt;-</span> <span class="fu">encrypt</span>(keys<span class="sc">@</span>public, <span class="fu">make_ckks_packed_plaintext</span>(cc, x), <span class="at">cc =</span> cc)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>ct_doubled <span class="ot">&lt;-</span> ct <span class="sc">+</span> ct</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>ct_squared <span class="ot">&lt;-</span> ct <span class="sc">*</span> ct</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>ct_scaled  <span class="ot">&lt;-</span> ct <span class="sc">*</span> <span class="fl">4.0</span></span></code></pre></div>
+<p>Decryption returns a packed plaintext;
+<code>get_real_packed_value()</code> extracts the underlying
+doubles.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">decrypt</span>(ct_doubled, keys<span class="sc">@</span>secret, <span class="at">cc =</span> cc)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">set_length</span>(result, <span class="dv">8</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>doubled_vec <span class="ot">&lt;-</span> <span class="fu">get_real_packed_value</span>(result)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>doubled_vec</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; [1]  0.5  1.0  1.5  2.0  4.0  6.0  8.0 10.0</span></span></code></pre></div>
+<p>The decrypted “double” of <code>x</code> matches <code>2 * x</code>
+to within the CKKS tolerance. The maximum elementwise error is</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>max_err <span class="ot">&lt;-</span> <span class="fu">max</span>(<span class="fu">abs</span>(doubled_vec <span class="sc">-</span> <span class="dv">2</span> <span class="sc">*</span> x))</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>max_err</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; [1] 1.527667e-13</span></span></code></pre></div>
+<p>1.53^{-13} — small enough to be invisible at the precisions reported
+in most statistical work. CKKS is the scheme to reach for when the
+encrypted computation is a likelihood, a gradient step, a regression
+coefficient, or anything else where a real-valued answer with bounded
+error is acceptable.</p>
+</div>
+<div id="boolean-operations-on-encrypted-bits" class="section level2">
+<h2>Boolean operations on encrypted bits</h2>
+<p>Some computations need comparisons or branching — “is this encrypted
+value greater than zero?” — which do not translate cleanly into
+polynomial operations on real numbers. For those tasks OpenFHE provides
+a separate scheme (BinFHE) that operates on encrypted single
+<strong>bits</strong>, each a 0 or 1.</p>
+<p>The unit of computation here is the <strong>logic gate</strong>: a
+basic Boolean operation — <code>AND</code>, <code>OR</code>,
+<code>NOT</code>, and a few relatives — that takes one or two bits in
+and returns one bit. Wiring gates together, the output of one feeding
+the input of the next, builds a <strong>Boolean circuit</strong> that
+computes a larger function; a comparator that tests whether one
+encrypted number exceeds another, or an adder, is just a fixed
+arrangement of gates. BinFHE evaluates one gate at a time on encrypted
+bits, and every gate evaluation runs an internal refresh, so a circuit
+can be made arbitrarily deep — at the cost of each gate being
+comparatively expensive.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>ctx <span class="ot">&lt;-</span> <span class="fu">bin_fhe_context</span>(BinFHEParamSet<span class="sc">$</span>STD128, BinFHEMethod<span class="sc">$</span>GINX)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>sk  <span class="ot">&lt;-</span> <span class="fu">bin_key_gen</span>(ctx)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">bin_bt_key_gen</span>(ctx, sk)</span></code></pre></div>
+<p>Encrypt two bits and evaluate <code>AND</code> and <code>OR</code> on
+them.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>ct_a <span class="ot">&lt;-</span> <span class="fu">bin_encrypt</span>(ctx, sk, <span class="dv">1</span><span class="dt">L</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>ct_b <span class="ot">&lt;-</span> <span class="fu">bin_encrypt</span>(ctx, sk, <span class="dv">0</span><span class="dt">L</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>ct_and <span class="ot">&lt;-</span> <span class="fu">eval_bin_gate</span>(ctx, BinGate<span class="sc">$</span>AND, ct_a, ct_b)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>ct_or  <span class="ot">&lt;-</span> <span class="fu">eval_bin_gate</span>(ctx, BinGate<span class="sc">$</span>OR,</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>                        <span class="fu">bin_encrypt</span>(ctx, sk, <span class="dv">1</span><span class="dt">L</span>),</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>                        <span class="fu">bin_encrypt</span>(ctx, sk, <span class="dv">0</span><span class="dt">L</span>))</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>and_bit <span class="ot">&lt;-</span> <span class="fu">bin_decrypt</span>(ctx, sk, ct_and)</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>or_bit  <span class="ot">&lt;-</span> <span class="fu">bin_decrypt</span>(ctx, sk, ct_or)</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>and_bit</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>or_bit</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span></code></pre></div>
+<p><code>AND(1, 0)</code> decrypts to 0 and <code>OR(1, 0)</code>
+decrypts to 1, as expected. The <code>binfhe-boolean-circuits</code>
+vignette explores this scheme in much more detail — including
+comparators, arbitrary-function evaluation, and multi-input gates.</p>
+</div>
+<div id="serialization" class="section level2">
+<h2>Serialization</h2>
+<p>Federated and threshold protocols need to move encrypted values and
+keys between processes, machines, or institutions. Every object the
+package produces — contexts, keys, ciphertexts, evaluation keys — has a
+binary serialization format. The example below writes a few objects to a
+temporary directory and reads them back; in a real protocol the same
+calls would write to network sockets or storage buckets.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>tdir <span class="ot">&lt;-</span> <span class="fu">tempdir</span>()</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="fu">fhe_serialize</span>(cc, <span class="fu">file.path</span>(tdir, <span class="st">&quot;context.bin&quot;</span>))</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="fu">fhe_serialize</span>(keys<span class="sc">@</span>public, <span class="fu">file.path</span>(tdir, <span class="st">&quot;pubkey.bin&quot;</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="fu">fhe_serialize</span>(ct, <span class="fu">file.path</span>(tdir, <span class="st">&quot;ciphertext.bin&quot;</span>))</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a><span class="fu">serialize_eval_keys</span>(<span class="fu">file.path</span>(tdir, <span class="st">&quot;mult_keys.bin&quot;</span>), <span class="st">&quot;mult&quot;</span>)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>cc2 <span class="ot">&lt;-</span> <span class="fu">fhe_deserialize</span>(<span class="fu">file.path</span>(tdir, <span class="st">&quot;context.bin&quot;</span>),    <span class="st">&quot;CryptoContext&quot;</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>ct2 <span class="ot">&lt;-</span> <span class="fu">fhe_deserialize</span>(<span class="fu">file.path</span>(tdir, <span class="st">&quot;ciphertext.bin&quot;</span>), <span class="st">&quot;Ciphertext&quot;</span>)</span></code></pre></div>
+<p><code>cc2</code> and <code>ct2</code> are independent objects that
+behave exactly like the originals — a different R session, possibly on a
+different machine, can decrypt or further process the encrypted data
+once it has the appropriate keys.</p>
+</div>
+<div id="threshold-decryption" class="section level2">
+<h2>Threshold decryption</h2>
+<p>The previous examples gave one party the full secret key. In a
+federated setting, no single party should hold enough key material to
+decrypt on their own. OpenFHE supports <strong>threshold
+decryption</strong>: two or more parties each generate a key share,
+encryption uses the joint public key, and decryption is a small protocol
+where each party contributes a partial result.</p>
+<p>The flow below sketches the two-party version. Party A generates
+initial keys, Party B daisy-chains its own keys off A’s public key, and
+encryption is done under B’s public key (which carries both
+contributions).</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>cc_mp <span class="ot">&lt;-</span> <span class="fu">fhe_context</span>(<span class="st">&quot;BFV&quot;</span>,</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="at">plaintext_modulus    =</span> <span class="dv">65537</span>,</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">multiplicative_depth =</span> <span class="dv">2</span>,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">features             =</span> <span class="fu">c</span>(Feature<span class="sc">$</span>MULTIPARTY)</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>)</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>kp_a <span class="ot">&lt;-</span> <span class="fu">key_gen</span>(cc_mp)</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>kp_b <span class="ot">&lt;-</span> <span class="fu">multiparty_key_gen</span>(cc_mp, kp_a<span class="sc">@</span>public)</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>ct_mp <span class="ot">&lt;-</span> <span class="fu">encrypt</span>(kp_b<span class="sc">@</span>public,</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>                 <span class="fu">make_packed_plaintext</span>(cc_mp, <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>),</span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>                 <span class="at">cc =</span> cc_mp)</span></code></pre></div>
+<p>Decryption proceeds in three steps: a <em>lead</em> partial
+decryption from the first party, a <em>main</em> partial decryption from
+the second party, and a fusion step that combines the partials into the
+final plaintext.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>partial_a <span class="ot">&lt;-</span> <span class="fu">multiparty_decrypt_lead</span>(cc_mp, kp_a<span class="sc">@</span>secret, ct_mp)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>partial_b <span class="ot">&lt;-</span> <span class="fu">multiparty_decrypt_main</span>(cc_mp, kp_b<span class="sc">@</span>secret, ct_mp)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>result_mp <span class="ot">&lt;-</span> <span class="fu">multiparty_decrypt_fusion</span>(cc_mp, partial_a, partial_b)</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">set_length</span>(result_mp, <span class="dv">8</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>mp_vec <span class="ot">&lt;-</span> <span class="fu">get_packed_value</span>(result_mp)</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>mp_vec</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt; [1] 1 2 3 4 5 6 7 8</span></span></code></pre></div>
+<p>The decrypted vector matches <code>1:8</code> — neither party alone
+could have produced it, but together they recovered the plaintext. This
+is the foundation that the worked applications build on. Cox regression
+across hospitals, consensus ADMM for distributed convex optimization,
+secure inference, and privacy-preserving aggregation all reduce to
+“encrypt under a joint key, run the optimizer over the encrypted
+channel, threshold-decrypt the final answer”.</p>
+</div>
+<div id="further-exploration" class="section level2">
+<h2>Further Exploration</h2>
+<p>Two further vignettes in <code>openfhe.R</code> itself dig into the
+schemes in depth:</p>
+<ul>
+<li><a href="ckks-bootstrapping.html"><code>ckks-bootstrapping</code></a> —
+what to do when a long CKKS computation runs out of multiplicative
+depth, including the multi-party variant that composes with the
+threshold flow above.</li>
+<li><a href="binfhe-boolean-circuits.html"><code>binfhe-boolean-circuits</code></a>
+— comparators, arbitrary-function evaluation, and the full set of BinFHE
+operations.</li>
+</ul>
+<p>For worked statistical applications — Cox regression, MLE, CVXR-based
+consensus ADMM, encrypted regression, secure inference, and
+privacy-preserving aggregation, plus differentially private variants —
+see the companion application package <a href="https://cran.r-project.org/package=homomorpheR"><code>homomorpheR</code></a>
+(version &gt;= 1.0). The two packages are siblings:
+<code>openfhe.R</code> provides the encryption primitives,
+<code>homomorpheR</code> hosts the statistical demos that run on top of
+them, ordered from simple aggregation through to advanced threshold and
+differential privacy workflows.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

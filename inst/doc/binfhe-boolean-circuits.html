@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Balasubramanian Narasimhan" />
+
+<meta name="date" content="2026-08-19" />
+
+<title>BinFHE: Boolean Circuits and Arbitrary Functions on Encrypted Bits</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">BinFHE: Boolean Circuits and Arbitrary
+Functions on Encrypted Bits</h1>
+<h4 class="author">Balasubramanian Narasimhan</h4>
+<h4 class="date">2026-08-19</h4>
+
+
+
+<p>The other vignettes in this package focus on <strong>CKKS</strong> —
+approximate real-number arithmetic with batched slots, suitable for
+distributed statistics, regression, and the bulk of the headline “R
+optimizers run unchanged over an encrypted channel” workflows. CKKS is
+where most of the audience-A use cases live.</p>
+<p>But CKKS has blind spots. It is not well suited to:</p>
+<ul>
+<li><strong>Comparisons and branching</strong> — “is
+<code>x &gt; 0</code>?” doesn’t translate cleanly into a polynomial
+approximation unless you’re willing to burn levels on a Chebyshev sign
+approximation.</li>
+<li><strong>Arbitrary non-polynomial functions</strong> on bounded
+integer domains — a piecewise step function, a bit-extraction, a custom
+lookup.</li>
+<li><strong>Exact per-bit logic</strong> — parity, comparators, small
+arbitrary-function evaluation.</li>
+</ul>
+<p>OpenFHE’s <strong>BinFHE</strong> subsystem is the tool for those
+jobs. BinFHE implements the FHEW/TFHE family: single-bit ciphertexts
+with <em>every gate evaluation</em> performing an in-place bootstrap.
+That means there’s no depth budget to manage — a BinFHE circuit can be
+arbitrarily deep — but each gate is comparatively expensive because the
+bootstrap is on the critical path. It’s the right shape for short
+circuits with logical or arbitrary-function operations, not for long
+chains of multiplications.</p>
+<p>This vignette walks through the BinFHE operations end-to-end. Every
+section runs real code and checks real output. The examples use the
+<strong>TOY</strong> paramset for speed — in production you’d use
+<strong>STD128</strong> (or STD128_3 / STD128_4 for multi-input
+gates).</p>
+<div id="context-and-key-setup" class="section level2">
+<h2>Context and key setup</h2>
+<p>A BinFHE context is built with a parameter set and a bootstrap
+method. <code>BinFHEParamSet</code> carries 44 values covering the full
+C++ header range — <strong>TOY</strong> for tests,
+<strong>STD128</strong> / <strong>STD128Q</strong> for 128-bit classical
+/ quantum security, <strong>STD192</strong> / <strong>STD256</strong>
+for higher security, and the <strong>LMKCDEY</strong> family for the
+newer bootstrap algorithm. <code>BinFHEMethod</code> chooses between
+<strong>GINX</strong> (default), <strong>AP</strong> (Ducas-Micciancio),
+and <strong>LMKCDEY</strong> (the fastest variant in the current OpenFHE
+release).</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(openfhe.R)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a></span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="do">## TOY paramset — fast but zero security. For demos only.</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>ctx <span class="ot">&lt;-</span> <span class="fu">bin_fhe_context</span>(BinFHEParamSet<span class="sc">$</span>TOY, BinFHEMethod<span class="sc">$</span>GINX)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="do">## The secret key generates bootstrap keys that every gate</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="do">## will use internally.</span></span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>sk <span class="ot">&lt;-</span> <span class="fu">bin_key_gen</span>(ctx)</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="fu">bin_bt_key_gen</span>(ctx, sk)</span></code></pre></div>
+<p><code>bin_bt_key_gen()</code> accepts an optional
+<code>keygen_mode</code> argument (<code>KeygenMode$SYM_ENCRYPT</code>
+default, or <code>KeygenMode$PUB_ENCRYPT</code>) that controls how the
+bootstrap keys are generated. Most users leave it at the default.</p>
+</div>
+<div id="two-input-boolean-gates" class="section level2">
+<h2>Two-input boolean gates</h2>
+<p>The standard 2-input gates are <code>AND</code>, <code>OR</code>,
+<code>NAND</code>, <code>NOR</code>, <code>XOR</code>,
+<code>XNOR</code>, and the fast variants <code>XOR_FAST</code> /
+<code>XNOR_FAST</code>. All of them go through the same
+<code>eval_bin_gate(ctx, gate, ct1, ct2)</code> entry point.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>ct0 <span class="ot">&lt;-</span> <span class="fu">bin_encrypt</span>(ctx, sk, <span class="dv">0</span><span class="dt">L</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>ct1 <span class="ot">&lt;-</span> <span class="fu">bin_encrypt</span>(ctx, sk, <span class="dv">1</span><span class="dt">L</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>truth <span class="ot">&lt;-</span> <span class="cf">function</span>(gate_name, gate, ct_a, ct_b) {</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  r <span class="ot">&lt;-</span> <span class="fu">eval_bin_gate</span>(ctx, gate, ct_a, ct_b)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="fu">bin_decrypt</span>(ctx, sk, r)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>}</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="do">## Full truth table for AND / OR / XOR.</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(<span class="at">a =</span> <span class="fu">c</span>(<span class="dv">0</span><span class="dt">L</span>, <span class="dv">1</span><span class="dt">L</span>), <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">0</span><span class="dt">L</span>, <span class="dv">1</span><span class="dt">L</span>))</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>grid<span class="sc">$</span>AND <span class="ot">&lt;-</span> <span class="fu">mapply</span>(<span class="cf">function</span>(a, b) <span class="fu">truth</span>(<span class="st">&quot;AND&quot;</span>, BinGate<span class="sc">$</span>AND,</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>                                         <span class="fu">bin_encrypt</span>(ctx, sk, a),</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>                                         <span class="fu">bin_encrypt</span>(ctx, sk, b)),</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>                    grid<span class="sc">$</span>a, grid<span class="sc">$</span>b)</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>grid<span class="sc">$</span>OR  <span class="ot">&lt;-</span> <span class="fu">mapply</span>(<span class="cf">function</span>(a, b) <span class="fu">truth</span>(<span class="st">&quot;OR&quot;</span>, BinGate<span class="sc">$</span>OR,</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>                                         <span class="fu">bin_encrypt</span>(ctx, sk, a),</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>                                         <span class="fu">bin_encrypt</span>(ctx, sk, b)),</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>                    grid<span class="sc">$</span>a, grid<span class="sc">$</span>b)</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>grid<span class="sc">$</span>XOR <span class="ot">&lt;-</span> <span class="fu">mapply</span>(<span class="cf">function</span>(a, b) <span class="fu">truth</span>(<span class="st">&quot;XOR&quot;</span>, BinGate<span class="sc">$</span>XOR,</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>                                         <span class="fu">bin_encrypt</span>(ctx, sk, a),</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>                                         <span class="fu">bin_encrypt</span>(ctx, sk, b)),</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>                    grid<span class="sc">$</span>a, grid<span class="sc">$</span>b)</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>grid</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt;   a b AND OR XOR</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt; 1 0 0   0  0   0</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt; 2 1 0   0  1   1</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt; 3 0 1   0  1   1</span></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt; 4 1 1   1  1   0</span></span></code></pre></div>
+<p>Every row of the truth table matches the standard boolean
+definitions. Nothing exotic is happening here — the interesting part is
+that the inputs are encrypted, the gate evaluation does a bootstrap
+internally, and the output is decryptable with the same secret key.</p>
+</div>
+<div id="negation" class="section level2">
+<h2>Negation</h2>
+<p>The only 1-input gate is <code>eval_not(ctx, ct)</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">bin_decrypt</span>(ctx, sk, <span class="fu">eval_not</span>(ctx, ct0))</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="fu">bin_decrypt</span>(ctx, sk, <span class="fu">eval_not</span>(ctx, ct1))</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+</div>
+<div id="multi-input-gates" class="section level2">
+<h2>Multi-input gates</h2>
+<p>OpenFHE exposes wider boolean gates (3-input and 4-input) that are
+more efficient than composing 2-input gates. The supported wide gates
+are <strong>AND3</strong>, <strong>OR3</strong>, <strong>AND4</strong>,
+<strong>OR4</strong>, <strong>MAJORITY</strong> (3-input majority vote),
+and <strong>CMUX</strong> (3-input conditional mux). All of them go
+through the same <code>eval_bin_gate()</code> entry point, but instead
+of passing two <code>Ciphertext</code> arguments you pass a
+<strong>list</strong> of ciphertexts.</p>
+<p>Multi-input gates have two setup constraints the 2-input gates don’t
+share:</p>
+<ol style="list-style-type: decimal">
+<li><strong>Parameter set</strong>: you need a paramset designed for the
+input width. <strong>STD128_3</strong> for 3-input gates,
+<strong>STD128_4</strong> for 4-input. TOY with the default plaintext
+modulus produces garbled decryption because the TOY parameters are tuned
+for 2-input only.</li>
+<li><strong>Plaintext modulus</strong>: the encryption call must use
+<code>p = 2 * num_inputs</code>. For 3-input gates that’s
+<code>p = 6</code>; for 4-input, <code>p = 8</code>. The
+<code>SMALL_DIM</code> output mode is also required.</li>
+</ol>
+<p>Here’s a 3-input <strong>AND3</strong> example using the right
+setup:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>ctx3 <span class="ot">&lt;-</span> <span class="fu">bin_fhe_context</span>(BinFHEParamSet<span class="sc">$</span>STD128_3)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>sk3 <span class="ot">&lt;-</span> <span class="fu">bin_key_gen</span>(ctx3)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="fu">bin_bt_key_gen</span>(ctx3, sk3)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>p3 <span class="ot">&lt;-</span> <span class="dv">6</span><span class="dt">L</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>encrypt_bit_3 <span class="ot">&lt;-</span> <span class="cf">function</span>(b) {</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="fu">bin_encrypt</span>(ctx3, sk3, <span class="fu">as.integer</span>(b),</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>              <span class="at">output =</span> BinFHEOutput<span class="sc">$</span>SMALL_DIM,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>              <span class="at">p =</span> p3)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="do">## 1 AND 1 AND 0 = 0</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>cts_110 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">encrypt_bit_3</span>(<span class="dv">1</span><span class="dt">L</span>),</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>                <span class="fu">encrypt_bit_3</span>(<span class="dv">1</span><span class="dt">L</span>),</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>                <span class="fu">encrypt_bit_3</span>(<span class="dv">0</span><span class="dt">L</span>))</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="fu">bin_decrypt</span>(ctx3, sk3,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>            <span class="fu">eval_bin_gate</span>(ctx3, BinGate<span class="sc">$</span>AND3, cts_110),</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>            <span class="at">p =</span> p3)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="do">## 1 AND 1 AND 1 = 1</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>cts_111 <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">encrypt_bit_3</span>(<span class="dv">1</span><span class="dt">L</span>),</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>                <span class="fu">encrypt_bit_3</span>(<span class="dv">1</span><span class="dt">L</span>),</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>                <span class="fu">encrypt_bit_3</span>(<span class="dv">1</span><span class="dt">L</span>))</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="fu">bin_decrypt</span>(ctx3, sk3,</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>            <span class="fu">eval_bin_gate</span>(ctx3, BinGate<span class="sc">$</span>AND3, cts_111),</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>            <span class="at">p =</span> p3)</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span></code></pre></div>
+<p>Same entry point, different shape: the third argument is a list
+instead of a single ciphertext, and the second argument
+(<code>ct2</code>) is left unset (defaults to <code>NULL</code>). The
+dispatcher detects the list shape and routes to the vector-form C++
+overload.</p>
+<p>Majority on three bits:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="do">## Majority uses p = 4 (not 2 * num_inputs = 6) per the</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="do">## upstream boolean-multi-input example&#39;s encoding.</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>p_maj <span class="ot">&lt;-</span> <span class="dv">4</span><span class="dt">L</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>encrypt_bit_maj <span class="ot">&lt;-</span> <span class="cf">function</span>(b) {</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="fu">bin_encrypt</span>(ctx3, sk3, <span class="fu">as.integer</span>(b),</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>              <span class="at">output =</span> BinFHEOutput<span class="sc">$</span>SMALL_DIM,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>              <span class="at">p =</span> p_maj)</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>}</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>cts <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">encrypt_bit_maj</span>(<span class="dv">1</span><span class="dt">L</span>),</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>            <span class="fu">encrypt_bit_maj</span>(<span class="dv">1</span><span class="dt">L</span>),</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>            <span class="fu">encrypt_bit_maj</span>(<span class="dv">0</span><span class="dt">L</span>))</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="fu">bin_decrypt</span>(ctx3, sk3,</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>            <span class="fu">eval_bin_gate</span>(ctx3, BinGate<span class="sc">$</span>MAJORITY, cts),</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>            <span class="at">p =</span> p_maj)</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="do">## 1 (majority of two 1s and one 0)</span></span></code></pre></div>
+</div>
+<div id="arbitrary-function-evaluation" class="section level2">
+<h2>Arbitrary function evaluation</h2>
+<p>For functions that don’t fit into the fixed gate repertoire, BinFHE
+supports <strong>arbitrary function evaluation</strong> via a lookup
+table. The workflow is:</p>
+<ol style="list-style-type: decimal">
+<li>Define a function from integers in <code>[0, p)</code> to integers
+in <code>[0, p)</code> in plain R.</li>
+<li>Build a <code>BinFHEContext</code> with
+<code>arb_func = TRUE</code>, which selects a paramset and ring
+dimension large enough for the functional bootstrap.</li>
+<li>Generate a lookup table via
+<code>generate_lut_via_function()</code>.</li>
+<li>Call <code>eval_func(ctx, ct, lut)</code> on an encrypted input —
+the output is a ciphertext of <code>f(input)</code>.</li>
+</ol>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="do">## Build an arb-func context. arb_func = TRUE picks a wider</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="do">## paramset; log_q and n control the LARGE_DIM modulus and</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="do">## dimension of the functional-bootstrap path.</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>ctx_f <span class="ot">&lt;-</span> <span class="fu">bin_fhe_context</span>(BinFHEParamSet<span class="sc">$</span>TOY,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>                          <span class="at">arb_func =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>sk_f <span class="ot">&lt;-</span> <span class="fu">bin_key_gen</span>(ctx_f)</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="fu">bin_bt_key_gen</span>(ctx_f, sk_f)</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">get_max_plaintext_space</span>(ctx_f)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="do">## Example function: squared value mod p. The LUT maps</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="do">## input i in [0, p) to f(i) = i^2 mod p.</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>f_square <span class="ot">&lt;-</span> <span class="cf">function</span>(x, plaintext_modulus) {</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  (x <span class="sc">*</span> x) <span class="sc">%%</span> plaintext_modulus</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>}</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>lut <span class="ot">&lt;-</span> <span class="fu">generate_lut_via_function</span>(f_square, p)</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="do">## Encrypt a value in the LARGE_DIM / functional-bootstrap</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="do">## path and evaluate.</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>ct_input <span class="ot">&lt;-</span> <span class="fu">bin_encrypt</span>(ctx_f, sk_f, <span class="dv">3</span><span class="dt">L</span>,</span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>                        <span class="at">output =</span> BinFHEOutput<span class="sc">$</span>LARGE_DIM,</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>                        <span class="at">p =</span> p)</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>ct_out <span class="ot">&lt;-</span> <span class="fu">eval_func</span>(ctx_f, ct_input, lut)</span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="fu">bin_decrypt</span>(ctx_f, sk_f, ct_out, <span class="at">p =</span> p)</span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="do">## 9 (if p &gt; 9, otherwise 9 mod p)</span></span></code></pre></div>
+<p>The LUT evaluation runs one functional bootstrap per
+<code>eval_func()</code> call — so it’s not cheap — but it gives you
+arbitrary univariate functions over the plaintext domain without any
+polynomial approximation.</p>
+</div>
+<div id="the-sign-function" class="section level2">
+<h2>The sign function</h2>
+<p><code>eval_sign(ctx, ct)</code> evaluates the sign of an encrypted
+value: it returns 1 if the input is in the “positive” half of the
+encoding range and 0 if it’s in the “negative” half. The primary use
+case is threshold comparisons (convert <code>x &gt; threshold</code>
+into <code>eval_sign(ct - threshold_ct)</code>).</p>
+<p>Unlike the other functional-bootstrap primitives in this vignette,
+<code>eval_sign()</code> requires a <strong>large-Q</strong> context:
+the paramset must be <strong>STD128</strong> (not TOY), the
+<code>arb_func</code> flag must be <code>FALSE</code>, and an explicit
+<code>log_q</code> must be supplied. The encryption path uses the
+<code>LARGE_DIM</code> output mode with both an explicit plaintext
+modulus <code>p</code> and an explicit ciphertext modulus
+<code>mod = Q</code>.</p>
+<p>This setup mirrors the upstream <code>eval-sign.py</code>
+example.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>log_q <span class="ot">&lt;-</span> <span class="dv">17</span><span class="dt">L</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>ctx_s <span class="ot">&lt;-</span> <span class="fu">bin_fhe_context</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">paramset           =</span> BinFHEParamSet<span class="sc">$</span>STD128,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">method             =</span> BinFHEMethod<span class="sc">$</span>GINX,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">arb_func           =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">log_q              =</span> log_q,</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="at">n                  =</span> <span class="dv">0</span><span class="dt">L</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">time_optimization  =</span> <span class="cn">FALSE</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>)</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>sk_s <span class="ot">&lt;-</span> <span class="fu">bin_key_gen</span>(ctx_s)</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="fu">bin_bt_key_gen</span>(ctx_s, sk_s)</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>Q <span class="ot">&lt;-</span> <span class="fu">bitwShiftL</span>(<span class="dv">1</span><span class="dt">L</span>, log_q)                           <span class="co"># 131072</span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="dv">4096</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>factor <span class="ot">&lt;-</span> <span class="fu">bitwShiftL</span>(<span class="dv">1</span><span class="dt">L</span>, log_q <span class="sc">-</span> <span class="fu">as.integer</span>(<span class="fu">log2</span>(q))) <span class="co"># 32</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>p_s <span class="ot">&lt;-</span> <span class="fu">get_max_plaintext_space</span>(ctx_s) <span class="sc">*</span> factor</span></code></pre></div>
+<p>Now encrypt eight values centered on <code>p_s / 2</code> and test
+each one’s sign:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>center <span class="ot">&lt;-</span> p_s <span class="sc">%/%</span> <span class="dv">2</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">7</span>) {</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  msg <span class="ot">&lt;-</span> center <span class="sc">+</span> i <span class="sc">-</span> <span class="dv">3</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  ct  <span class="ot">&lt;-</span> <span class="fu">bin_encrypt</span>(ctx_s, sk_s, msg,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>                     <span class="at">output =</span> BinFHEOutput<span class="sc">$</span>LARGE_DIM,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>                     <span class="at">p =</span> p_s, <span class="at">mod =</span> Q)</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  ct_sign <span class="ot">&lt;-</span> <span class="fu">eval_sign</span>(ctx_s, ct)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="do">## Decrypt with p = 2 (sign bit is a single bit).</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">bin_decrypt</span>(ctx_s, sk_s, ct_sign, <span class="at">p =</span> <span class="dv">2</span><span class="dt">L</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">&quot;msg = center%+d =&gt; sign bit %d</span><span class="sc">\n</span><span class="st">&quot;</span>, i <span class="sc">-</span> <span class="dv">3</span>, result))</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>}</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; msg = center-3 =&gt; sign bit 0</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; msg = center-2 =&gt; sign bit 0</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; msg = center-1 =&gt; sign bit 0</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt; msg = center+0 =&gt; sign bit 1</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; msg = center+1 =&gt; sign bit 1</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; msg = center+2 =&gt; sign bit 1</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; msg = center+3 =&gt; sign bit 1</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="co">#&gt; msg = center+4 =&gt; sign bit 1</span></span></code></pre></div>
+<p>The sign flips exactly at <code>i = 3</code> (msg = center) — inputs
+in the lower half of <code>[0, p_s)</code> return 0, inputs in the upper
+half return 1.</p>
+<p>The optional <code>scheme_switch</code> argument to
+<code>eval_sign()</code> controls whether the output encoding is
+compatible with the CKKS&lt;-&gt;FHEW scheme-switching pipeline. Most
+users can ignore it (default <code>FALSE</code>).</p>
+</div>
+<div id="floor-bit-level-rounding" class="section level2">
+<h2>Floor: bit-level rounding</h2>
+<p><code>eval_floor(ctx, ct, roundbits)</code> performs the LWE
+equivalent of <code>floor(ct / 2^roundbits)</code> via functional
+bootstrapping. Used as a primitive in bit-extraction or quantization
+pipelines. Like <code>eval_func</code>, <code>eval_floor</code> works
+with an <code>arb_func = TRUE</code> context and the
+<code>LARGE_DIM</code> encryption mode — so the previous
+<code>ctx_f</code> from the LUT section is ready to use.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>ct_five <span class="ot">&lt;-</span> <span class="fu">bin_encrypt</span>(ctx_f, sk_f, <span class="dv">5</span><span class="dt">L</span>,</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>                       <span class="at">output =</span> BinFHEOutput<span class="sc">$</span>LARGE_DIM,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>                       <span class="at">p =</span> p)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>ct_floor <span class="ot">&lt;-</span> <span class="fu">eval_floor</span>(ctx_f, ct_five, <span class="at">roundbits =</span> <span class="dv">2</span><span class="dt">L</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">class</span>(ct_floor)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a><span class="co">#&gt; [1] &quot;openfhe.R::LWECiphertext&quot; &quot;openfhe.R::OpenFHEObject&quot;</span></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co">#&gt; [3] &quot;S7_object&quot;</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="do">## Returns an LWECiphertext holding floor(5 / 2^2) = 1 in</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a><span class="do">## the rounded encoding.</span></span></code></pre></div>
+</div>
+<div id="when-to-use-binfhe-vs-ckks" class="section level2">
+<h2>When to use BinFHE vs CKKS</h2>
+<p>The two schemes solve different problems.</p>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Property</th>
+<th>CKKS</th>
+<th>BinFHE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Data type</td>
+<td>real numbers (approximate)</td>
+<td>single bits</td>
+</tr>
+<tr class="even">
+<td>Batching</td>
+<td>yes (thousands of slots per ciphertext)</td>
+<td>no (one bit per ciphertext)</td>
+</tr>
+<tr class="odd">
+<td>Per-op cost</td>
+<td>cheap multiply / add, expensive bootstrap</td>
+<td>every gate is a bootstrap internally</td>
+</tr>
+<tr class="even">
+<td>Depth budget</td>
+<td>yes — bootstrap refreshes, see <a href="ckks-bootstrapping.html">ckks-bootstrapping</a></td>
+<td>no — gates self-refresh</td>
+</tr>
+<tr class="odd">
+<td>Good at</td>
+<td>polynomial arithmetic, statistics, batched linear algebra</td>
+<td>comparisons, branching, per-bit logic, arbitrary univariate
+functions</td>
+</tr>
+<tr class="even">
+<td>Audience-A fit in this package</td>
+<td><strong>primary</strong> — cox / cvxr / mle / encrypted-regression
+etc.</td>
+<td><strong>secondary</strong> — comparators, thresholding, custom LUT
+evaluation</td>
+</tr>
+</tbody>
+</table>
+<p>In practice the two schemes are complementary. A hybrid workflow —
+use CKKS for the heavy lifting, then scheme-switch to BinFHE for a
+comparison or a LUT evaluation — exists in the OpenFHE C++ library (via
+<code>eval_sign(scheme_switch = TRUE)</code> and the
+<code>EvalSchemeSwitching*</code> family). The scheme-switching pipeline
+itself is not yet exposed in <code>openfhe.R</code>’s R interface but a
+future version could if a concrete use case demands it.</p>
+</div>
+<div id="further-reading" class="section level2">
+<h2>Further reading</h2>
+<p>Besides the package help, more details can be found in the <a href="https://openfhe-development.readthedocs.io/">OpenFHE BinFHE
+documentation</a>.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
