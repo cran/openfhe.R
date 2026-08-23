@@ -1,7 +1,7 @@
-85b0581474cdb99092ad0a3cb55f03a3 *DESCRIPTION
+6ca90c86cfaafbbb9a72e5e4a43f80be *DESCRIPTION
 6ea221a4b684bb30d43fb9f26de3e03a *LICENSE
 8afedb6180b5ce69cda59924bc7c4334 *NAMESPACE
-eb1a532538f1a68b1adff3ed2d70a339 *NEWS.md
+2e3670cf9873fb4d3a9d97183dbba0e4 *NEWS.md
 90edcc8e7e81f4217d7c661a1903bde6 *R/binfhe.R
 f13f032fc7bc71011d71d6359ae0abbf *R/ciphertext-accessors.R
 6a75879198abdc7cb5172ecc1e0e0ccc *R/ciphertext.R
@@ -33,7 +33,7 @@ c0c3a32823c1cc008ddaf299d96ef1cb *R/plaintext-accessors.R
 add2bef81cacdd62691a3fc29a06fa8d *R/tolerance.R
 1d6f08e7dfe025e48fe599fa76887623 *R/utils.R
 67f135b553d6f97ef41a6a6a594675cc *R/zzz.R
-d0c062e3011c9808fbb3b637961f3f19 *README.md
+558b038b7d9397da5d8f5c6d45ed39f4 *README.md
 21c9401b8c07f38d762ade4612fc4ffe *build/partial.rdb
 d8d4ec81d33976cf2e2b447d3007abf6 *build/vignette.rds
 12a815402a480e4952e5e70274cc58b2 *cleanup
@@ -43,14 +43,14 @@ f98db4b101f67fccd2ca49c6d7d6ddf4 *configure.win
 de98838cf7fc6da2a4d20f6826ca7f7e *inst/COPYRIGHTS
 8b3d2283413dcc4a77b8aee408463891 *inst/build_openfhe.sh
 7aad3cb709b1aa62796b4c75936a05d9 *inst/doc/binfhe-boolean-circuits.R
-1ef6640f5f01c0503e3b3e51bc8b83bd *inst/doc/binfhe-boolean-circuits.Rmd
-64e74bcad57ebad149f34a0cb383415e *inst/doc/binfhe-boolean-circuits.html
+34c27274e0917327d79f5cbbfcc2b9b5 *inst/doc/binfhe-boolean-circuits.Rmd
+21ca35e990f6b5fc6ed30d0ad3cf0933 *inst/doc/binfhe-boolean-circuits.html
 6f1eacb49f767a0d29ac5a607fb04bcc *inst/doc/ckks-bootstrapping.R
 933203d0c3ba330c429cc6e91df4672c *inst/doc/ckks-bootstrapping.Rmd
-b7a8b11856fd161fe4c429dbb373d00a *inst/doc/ckks-bootstrapping.html
+fc6ffb641d1f88d79635723261879641 *inst/doc/ckks-bootstrapping.html
 720a8dd6afbd5ac6026ba0c8397fc7c4 *inst/doc/introduction.R
 eae47ea5e3188a3ab60cd961c3271ea8 *inst/doc/introduction.Rmd
-17c3638b326628e0281ec27ef37c431a *inst/doc/introduction.html
+fbe1999002e363e05e63855b379c1bf5 *inst/doc/introduction.html
 d511a48325734945cabd6fc49591cce5 *inst/openfhe/CMakeLists.User.txt
 464c536864025e1b9ec4ce1f29554760 *inst/openfhe/CMakeLists.txt
 9cb43d611bb5ffba86c57b22934dacd2 *inst/openfhe/LICENSE
@@ -186,7 +186,7 @@ f9683154982ed38a2d989a6b4f793cda *inst/openfhe/src/binfhe/lib/binfhecontext.cpp
 08e71f78f13bd791ec32079b5f4489d7 *inst/openfhe/src/binfhe/lib/rgsw-acc-cggi.cpp
 90af46f59113caf102aa9bd55e9cdd7d *inst/openfhe/src/binfhe/lib/rgsw-acc-dm.cpp
 f9b48037af2b30c46599d27461065bb2 *inst/openfhe/src/binfhe/lib/rgsw-acc-lmkcdey.cpp
-84775bc4ba3df393002cc9f887b05b3d *inst/openfhe/src/binfhe/lib/rgsw-acc.cpp
+74b84b7d0844e0d092c511a19bb502c8 *inst/openfhe/src/binfhe/lib/rgsw-acc.cpp
 5fe67c02a870e39511498609a4ac8729 *inst/openfhe/src/binfhe/lib/rgsw-cryptoparameters.cpp
 97a2d2d2c9b528c76206d5cbab2522d8 *inst/openfhe/src/core/CMakeLists.txt
 108d650feead5827c39eaab0d86c9626 *inst/openfhe/src/core/include/README.md
@@ -526,7 +526,7 @@ de54eb555bf7795e4989250e1bb4d922 *inst/tinytest/test_bgv_serial.R
 853f9e9f72486c649e03520f0a7fca7c *inst/tinytest/test_binfhe_arg_completion.R
 c5b8699e00c77e538bb083ea5daa1062 *inst/tinytest/test_binfhe_eval_bin_gate_vec.R
 c9ebdc2487b1fcce57d8e18756f0b27f *inst/tinytest/test_binfhe_eval_function.R
-147293138093e89050bf5e1433e71d8a *inst/tinytest/test_binfhe_eval_sign.R
+3b28d6ed1f93338543fa685f1034276d *inst/tinytest/test_binfhe_eval_sign.R
 0078f368adbec3e7854e2ae8bc3432f7 *inst/tinytest/test_binfhe_methods.R
 d683b684b5b4e217c9344aa66df56e44 *inst/tinytest/test_binfhe_truth_tables.R
 d32b742ce27ffc41c232c06a7bea62e2 *inst/tinytest/test_ciphertext_accessors.R
@@ -775,6 +775,6 @@ a4d7b47074adc5033a18f371567cb9e8 *src/pke_serialization.cpp
 25c8b7ed039019b3f18dabe19353d202 *src/pke_sum_key_serial.cpp
 f3a59a127964d319c5342e363e515d6a *src/r_streams.cpp
 9d6d3b8ab89ba2bbe02b74947d8ecf82 *tests/tinytest.R
-1ef6640f5f01c0503e3b3e51bc8b83bd *vignettes/binfhe-boolean-circuits.Rmd
+34c27274e0917327d79f5cbbfcc2b9b5 *vignettes/binfhe-boolean-circuits.Rmd
 933203d0c3ba330c429cc6e91df4672c *vignettes/ckks-bootstrapping.Rmd
 eae47ea5e3188a3ab60cd961c3271ea8 *vignettes/introduction.Rmd

@@ -1,7 +1,7 @@
 Package: openfhe.R
 Title: R Interface to the 'OpenFHE' Fully Homomorphic Encryption
         Library
-Version: 1.5.1
+Version: 1.5.1.1
 Authors@R: c(
     person("Balasubramanian", "Narasimhan", email = "naras@stanford.edu",
            role = c("aut", "cre", "cph"),
@@ -66,7 +66,7 @@ Collate: 'openfhe-package.R' 'cpp11.R' 'openfhe-object.R' 'enums.R'
 Encoding: UTF-8
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: yes
-Packaged: 2026-08-19 17:55:39 UTC; naras
+Packaged: 2026-08-22 21:12:34 UTC; naras
 Author: Balasubramanian Narasimhan [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0001-5852-7639>),
   New Jersey Institute of Technology [cph] (OpenFHE C++ library,
@@ -93,4 +93,4 @@ Author: Balasubramanian Narasimhan [aut, cre, cph] (ORCID:
     inst/openfhe/cereal)
 Maintainer: Balasubramanian Narasimhan <naras@stanford.edu>
 Repository: CRAN
-Date/Publication: 2026-08-21 13:30:08 UTC
+Date/Publication: 2026-08-23 15:50:15 UTC
