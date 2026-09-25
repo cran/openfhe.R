@@ -1,3 +1,33 @@
+# openfhe.R 1.5.1.2
+
+* Under `R CMD check` the package caps OpenFHE at two threads.
+
+* `set_num_threads()` now sets the cap through OpenFHE's own thread
+  controls rather than the OpenMP runtime, and returns the cap in
+  effect (invisibly).
+
+* The package now installs on musl-based Linux (Alpine).
+
+* `rlang` is declared in `Imports`. 
+
+* Every handle the package passes between R and C++ now carries its
+  type, and every binding checks that type before using the pointer.
+
+* `bin_fhe_context()` returns an object of the new `BinFHEContext`
+  class instead of the base `OpenFHEObject`. The boolean-circuit
+  context and the `CryptoContext` used by BFV, BGV, and CKKS are
+  therefore distinct classes, and passing one where the other belongs
+  is an error rather than a silent misuse. 
+  
+* `OpenFHEObject`, the base class, is now abstract. It was never useful
+  to construct directly, and every handle now belongs to a concrete
+  class.
+
+* `decrypt()` accepts its arguments in either order, matching the C++
+  library, which declares both. `decrypt(private_key, ciphertext)` is
+  now equivalent to `decrypt(ciphertext, private_key)`. 
+
+
 # openfhe.R 1.5.1.1
 
 * Fixed undefined behavior in the vendored OpenFHE library reported by

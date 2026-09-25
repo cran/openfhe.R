@@ -30,7 +30,15 @@
 //==================================================================================
 #include "utils/get-call-stack.h"
 
-#if defined(__linux__) && defined(__GNUC__)
+// execinfo.h is a glibc extension, not a Linux guarantee: musl-based
+// systems (Alpine) define __linux__ and __GNUC__ but do not ship it, and
+// the build failed there with "execinfo.h: No such file or directory"
+// (CRAN's musl additional-issues check against openfhe.R 1.5.1.1). Fall
+// through to the empty-call-stack branch below wherever the header is
+// absent, as macOS and Windows already do. Nothing reads the call stack:
+// getCallStackAsVector() has no callers and getCallStackAsString() is a
+// stub. __has_include is standard in C++17.
+#if defined(__linux__) && defined(__GNUC__) && __has_include(<execinfo.h>)
 // clang-format off
 #include "utils/demangle.h"
 

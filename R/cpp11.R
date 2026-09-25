@@ -61,7 +61,7 @@ BinFHEContext__EvalFunc <- function(ctx_xp, ct_xp, plaintext_lut) {
 }
 
 openfhe_set_num_threads <- function(n) {
-  invisible(.Call(`_openfhe_R_openfhe_set_num_threads`, n))
+  .Call(`_openfhe_R_openfhe_set_num_threads`, n)
 }
 
 openfhe_get_num_threads <- function() {
@@ -1566,4 +1566,8 @@ Serialize__EvalSumKey <- function(filename, binary, key_tag) {
 
 Deserialize__EvalSumKey <- function(filename, binary) {
   .Call(`_openfhe_R_Deserialize__EvalSumKey`, filename, binary)
+}
+
+xptr_type <- function(xp) {
+  .Call(`_openfhe_R_xptr_type`, xp)
 }

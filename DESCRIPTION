@@ -1,7 +1,7 @@
 Package: openfhe.R
 Title: R Interface to the 'OpenFHE' Fully Homomorphic Encryption
         Library
-Version: 1.5.1.1
+Version: 1.5.1.2
 Authors@R: c(
     person("Balasubramanian", "Narasimhan", email = "naras@stanford.edu",
            role = c("aut", "cre", "cph"),
@@ -49,7 +49,7 @@ URL: https://openfheorg.github.io/openfhe.R/,
         https://github.com/openfheorg/openfhe.R
 BugReports: https://github.com/openfheorg/openfhe.R/issues
 Depends: R (>= 4.3.0)
-Imports: S7, cli, methods
+Imports: S7, cli, rlang, methods
 Suggests: tinytest, knitr, rmarkdown
 VignetteBuilder: knitr
 LinkingTo: cpp11 (>= 0.4.2)
@@ -64,9 +64,9 @@ Collate: 'openfhe-package.R' 'cpp11.R' 'openfhe-object.R' 'enums.R'
         'secret-sharing.R' 'interactive-bootstrap.R' 'binfhe.R'
         'serialization.R' 'operators.R' 'tolerance.R' 'utils.R' 'zzz.R'
 Encoding: UTF-8
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.0
 NeedsCompilation: yes
-Packaged: 2026-08-22 21:12:34 UTC; naras
+Packaged: 2026-09-25 13:48:38 UTC; naras
 Author: Balasubramanian Narasimhan [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0001-5852-7639>),
   New Jersey Institute of Technology [cph] (OpenFHE C++ library,
@@ -93,4 +93,4 @@ Author: Balasubramanian Narasimhan [aut, cre, cph] (ORCID:
     inst/openfhe/cereal)
 Maintainer: Balasubramanian Narasimhan <naras@stanford.edu>
 Repository: CRAN
-Date/Publication: 2026-08-23 15:50:15 UTC
+Date/Publication: 2026-09-25 21:30:16 UTC

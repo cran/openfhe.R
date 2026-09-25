@@ -731,9 +731,17 @@ endif()
 set(DEMODATAPATH ${CMAKE_CURRENT_SOURCE_DIR}/demoData)
 set(BINDEMODATAPATH ${CMAKE_CURRENT_BINARY_DIR}/demoData)
 
-# Copies demoData folder from the root of the repo to build/demoData if the folder does not exist
-add_custom_target(third-party ALL
-    COMMAND [ ! -d ${BINDEMODATAPATH} ] && cp -R ${DEMODATAPATH} ${BINDEMODATAPATH} && echo "-- Copied demoData files" || echo "-- demoData folder already exists")
+# Copies demoData folder from the root of the repo to build/demoData if the folder does not exist.
+# The target itself is always defined (src/core depends on it); the copy runs only when the
+# source folder is present. A source tree that omits demoData (for example a distribution
+# tarball that strips it) would otherwise print a spurious "cp: can't stat" line on every
+# build, masked by the trailing echo.
+if(EXISTS ${DEMODATAPATH})
+    add_custom_target(third-party ALL
+        COMMAND [ ! -d ${BINDEMODATAPATH} ] && cp -R ${DEMODATAPATH} ${BINDEMODATAPATH} && echo "-- Copied demoData files" || echo "-- demoData folder already exists")
+else()
+    add_custom_target(third-party ALL)
+endif()
 
 # When running "make clean", additionally deletes the demoData folder and CMake cache file
 set(ADDITIONAL_CLEAN_FILES "")

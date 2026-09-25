@@ -364,7 +364,7 @@ std::shared_ptr<std::map<uint32_t, EvalKey<Element>>> LeveledSHEBase<Element>::E
         (*evalKeys)[indx];
 
     const uint32_t sz = newIndices.size();
-#pragma omp parallel for
+#pragma omp parallel for num_threads(OpenFHEParallelControls.GetThreadLimit(sz))
     for (uint32_t i = 0; i < sz; ++i) {
         auto index = NativeInteger(newIndices[i]).ModInverse(M).ConvertToInt<uint32_t>();
         std::vector<uint32_t> vec(N);
